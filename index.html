@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Unblocked Songs for School</title>
+  <style>
+    :root{
+      --max-width:900px;
+      --accent:#333;
+      --card:#fff;
+      --bg:#f4f4f9;
+    }
+    html,body{height:100%;margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--accent)}
+    .wrap{max-width:var(--max-width);margin:20px auto;padding:12px}
+    header{text-align:center;margin-bottom:10px}
+    h1{margin:6px 0 10px;font-size:1.6rem}
+    .countdown{margin-bottom:14px}
+    /* pages */
+    .page{display:none;background:transparent}
+    .visible{display:block}
+    /* boxes */
+    .box{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 3px 10px rgba(0,0,0,0.12);margin-bottom:12px}
+    input[type="text"],input[type="password"],input[type="email"]{
+      padding:8px;border-radius:6px;border:1px solid #ccc;width:calc(100% - 18px);box-sizing:border-box;margin:6px 0;
+      font-size:0.95rem;
+    }
+    button{padding:8px 12px;border-radius:6px;border:none;background:var(--accent);color:#fff;cursor:pointer;margin:6px 4px 0 0;}
+    .muted{color:#666;font-size:0.95rem}
+    .two-col{display:flex;gap:10px}
+    .two-col > *{flex:1}
+    /* song list */
+    .song-container{height:64vh;overflow-y:auto;padding:12px;background:var(--card);border-radius:10px;box-shadow:0 3px 12px rgba(0,0,0,0.08)}
+    .song-item{margin-bottom:16px}
+    .song-item h2{margin:0 0 6px;font-size:1rem;color:#444}
+    iframe{width:100%;height:166px;border-radius:8px;border:0}
+    /* admin table */
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;border:1px solid #ddd;text-align:left}
+    .ban-btn{background:#c33}
+    .unban-btn{background:#2a8a2a}
+    .warn{color:#c33;margin-top:8px}
+    /* banned screen */
+    .banned-screen{height:80vh;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center}
+    /* small screens */
+    @media (max-width:600px){
+      .song-container{height:56vh}
+      h1{font-size:1.3rem}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- header / title -->
+    <header>
+      <h1>Unblocked Songs for School</h1>
+
+      <!-- countdown iframe under the title (always present when not banned) -->
+      <div class="countdown">
+        <iframe width="300" height="154" src="https://w2.countingdownto.com/6561535" frameborder="0"></iframe>
+      </div>
+    </header>
+
+    <!-- BANNED-BROWSER SCREEN -->
+    <div id="bannedBrowserScreen" class="page box">
+      <div class="banned-screen">
+        <h2>Access Blocked</h2>
+        <p class="muted">This browser has been banned from viewing this page.</p>
+        <p class="muted">If this was a mistake, open the file on a different browser or clear this browser's local storage.</p>
+      </div>
+    </div>
+
+    <!-- LOGIN PAGE (admin or route to user login/signup) -->
+    <div id="mainLogin" class="page box">
+      <h2 style="margin-top:0">Login</h2>
+      <p class="muted">Admin login (use Admin to manage users) or switch to User Login/Signup.</p>
+
+      <div style="margin-top:6px">
+        <strong>Admin</strong>
+        <input id="adminUsername" type="text" placeholder="Admin username">
+        <input id="adminPassword" type="password" placeholder="Admin password">
+        <button onclick="adminLogin()">Login as Admin</button>
+        <div style="display:inline-block;vertical-align:top;margin-left:6px">
+          <button onclick="showUserLogin()">User Login/Signup</button>
+        </div>
+        <p id="adminError" class="warn" style="display:none">Incorrect admin username or password.</p>
+      </div>
+    </div>
+
+    <!-- USER LOGIN -->
+    <div id="userLoginPage" class="page box">
+      <h2 style="margin-top:0">User Login</h2>
+      <input id="userLoginName" type="text" placeholder="Your name">
+      <input id="userLoginEmail" type="email" placeholder="Your email">
+      <div>
+        <button onclick="userLogin()">Login</button>
+        <button onclick="showSignup()">Go to Signup</button>
+      </div>
+      <p id="userLoginMsg" class="warn" style="display:none"></p>
+      <div style="margin-top:8px" class="muted">Users sign up with Name + Email and log in with the same.</div>
+    </div>
+
+    <!-- SIGNUP PAGE -->
+    <div id="signupPage" class="page box">
+      <h2 style="margin-top:0">User Signup</h2>
+      <input id="signupName" type="text" placeholder="Your name">
+      <input id="signupEmail" type="email" placeholder="Your email">
+      <div>
+        <button onclick="signup()">Sign Up</button>
+        <button onclick="showUserLogin()">Back to Login</button>
+      </div>
+      <p id="signupMsg" style="display:none" class="muted"></p>
+    </div>
+
+    <!-- ADMIN DASHBOARD -->
+    <div id="adminPage" class="page box">
+      <h2 style="margin-top:0">Admin Panel</h2>
+      <div class="muted">Logged in as <strong>SamMusic</strong></div>
+
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="loadUsers()">Refresh Users</button>
+        <button onclick="clearUsers()">Clear All Users</button>
+        <button style="background:#aa0000" onclick="banCurrentBrowser()">Ban This Browser (set flag)</button>
+        <button style="background:#2a8a2a" onclick="unbanCurrentBrowser()">Unban This Browser</button>
+      </div>
+
+      <div style="margin-top:12px;overflow:auto" class="box">
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Email</th><th>Action</th></tr>
+          </thead>
+          <tbody id="userTableBody"></tbody>
+        </table>
+        <p id="banMsg" class="warn" style="display:none"></p>
+      </div>
+    </div>
+
+    <!-- MAIN MUSIC CONTENT (visible to logged in users) -->
+    <div id="content" class="page">
+      <div class="box">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong>Logged in as user</strong></div>
+          <div>
+            <button onclick="logout()">Logout</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="song-container box" id="songContainer">
+        <!-- All songs listed below (scrollable) -->
+        <!-- Songs provided by you are used as-is; if an embed doesn't load it may not be available/embeddable on SoundCloud -->
+        <div class="song-item">
+          <h2>Golden — HUNTR/X, EJAE, Audrey Nuna & REI AMI</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/shadow_zak/huntrx-ejae-audrey-nuna-rei-ami-golden-shadow-zak-remix&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>Ordinary — Alex Warren</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/alexwaarren/ordinary&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>Tears — Sabrina Carpenter</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/sabrinacarpenter/tears&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>Manchild — Sabrina Carpenter</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/sabrinacarpenter/manchild&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>Die With A Smile — Lady Gaga & Bruno Mars</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/reymuel-espino/lady-gaga-bruno-mars-die-with&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>Jealous Type — Doja Cat</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/amalaofficial/jealous-type&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>BIRDS OF A FEATHER — Billie Eilish</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/billieeilish/birds-of-a-feather&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>Espresso — Sabrina Carpenter</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/sabrinacarpenter/sabrina-carpenter-espresso&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>The Subway — Chappell Roan</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/chappellroan/the-subway&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>Abracadabra — Lady Gaga</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/ladygaga/abracadabra&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>More — Carly Rae Jepsen</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/carlyraejepsen/more&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>Busy Woman — Sabrina Carpenter</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/sabrinacarpenter/busy-woman&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>That's So True — Gracie Abrams</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/gracieabrams/thats-so-true&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>Please Please Please — Sabrina Carpenter</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/sabrinacarpenter/please-please-please&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>Lose Control — Teddy Swims</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/teddyswims/lose-control&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>Too Sweet — Hozier</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/hozier/too-sweet&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>Beautiful Things — Benson Boone</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/bensonboone/beautiful-things&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>Guess — Charli XCX featuring Billie Eilish</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/charlixcx/guess&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>All My Love — Coldplay</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/coldplay/all-my-love&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>Messy — Lola Young</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/lolayoung/messy&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>toxic till the end — ROSÉ</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/rose/toxic-till-the-end&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>Sapphire — Ed Sheeran</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/edsheeran/sapphire&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>I Think I Like You Better When You're Gone — Reneé Rapp</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/reneerapp/i-think-i-like-you-better-when-youre-gone&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>Forever Young — David Guetta, Alphaville & Ava Max</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/davidguetta/forever-young&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+        <div class="song-item">
+          <h2>Holy Water — Marshmello & Jelly Roll</h2>
+          <iframe src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/marshmello/holy-water&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" frameborder="0"></iframe>
+        </div>
+
+      </div> <!-- /.song-container -->
+    </div> <!-- /#content -->
+
+  </div> <!-- /.wrap -->
+
+<script>
+/* ======================
+   Storage keys & helpers
+   ====================== */
+const KEY_USERS = 'unblocked_users_v1';
+const KEY_BANNED = 'unblocked_banned_v1';
+const KEY_BANNED_BROWSER = 'unblocked_banned_browser_v1';
+
+/* Utility: read array from localStorage */
+function readJSON(key){ try{ return JSON.parse(localStorage.getItem(key) || '[]') }catch(e){ return [] } }
+/* Utility: write */
+function writeJSON(key,val){ localStorage.setItem(key, JSON.stringify(val)) }
+
+/* ====== Startup checks ====== */
+function checkBannedBrowserOnLoad(){
+  const banned = localStorage.getItem(KEY_BANNED_BROWSER);
+  if(banned === 'true'){
+    // show banned browser screen only
+    hideAllPages(); document.getElementById('bannedBrowserScreen').classList.add('visible');
+    return true;
+  }
+  return false;
+}
+
+/* Hide all main pages */
+function hideAllPages(){
+  const pages = ['mainLogin','userLoginPage','signupPage','adminPage','content','bannedBrowserScreen'];
+  pages.forEach(id => document.getElementById(id).classList.remove('visible'));
+}
+
+/* Show initial login view (unless banned browser) */
+(function init(){
+  if(checkBannedBrowserOnLoad()) return;
+  hideAllPages();
+  document.getElementById('mainLogin').classList.add('visible');
+})();
+
+/* ====== Page navigation ====== */
+function showUserLogin(){
+  hideAllPages();
+  document.getElementById('userLoginPage').classList.add('visible');
+}
+function showSignup(){
+  hideAllPages();
+  document.getElementById('signupPage').classList.add('visible');
+}
+function showMainLogin(){
+  hideAllPages();
+  document.getElementById('mainLogin').classList.add('visible');
+}
+
+/* ====== Admin login ====== */
+function adminLogin(){
+  const u = document.getElementById('adminUsername').value.trim();
+  const p = document.getElementById('adminPassword').value;
+  const adminUser = 'SamMusic';
+  const adminPass = 'samatic';
+  if(u === adminUser && p === adminPass){
+    // show admin panel
+    hideAllPages();
+    document.getElementById('adminPage').classList.add('visible');
+    document.getElementById('adminError').style.display = 'none';
+    loadUsers();
+  } else {
+    document.getElementById('adminError').style.display = 'block';
+  }
+}
+
+/* ====== User signup/login functions ====== */
+function signup(){
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim().toLowerCase();
+  const msgEl = document.getElementById('signupMsg');
+  msgEl.style.display = 'block';
+  if(!name || !email){ msgEl.textContent = 'Please enter both name and email.'; return; }
+  // check browser banned
+  if(localStorage.getItem(KEY_BANNED_BROWSER) === 'true'){ msgEl.textContent = 'This browser is banned.'; return; }
+  // check banned user list
+  const banned = readJSON(KEY_BANNED);
+  if(banned.find(b => b.email === email)){ msgEl.textContent = 'You are banned and cannot sign up.'; return; }
+  // check duplicate
+  const users = readJSON(KEY_USERS);
+  if(users.find(u => u.email === email)){ msgEl.textContent = 'This email is already signed up. Please login.'; return; }
+  users.push({name, email});
+  writeJSON(KEY_USERS, users);
+  msgEl.textContent = 'Signed up successfully! You can now log in.';
+  document.getElementById('signupName').value=''; document.getElementById('signupEmail').value='';
+}
+
+function userLogin(){
+  const name = document.getElementById('userLoginName').value.trim();
+  const email = document.getElementById('userLoginEmail').value.trim().toLowerCase();
+  const msgEl = document.getElementById('userLoginMsg');
+  msgEl.style.display = 'none';
+  if(!name || !email){ msgEl.style.display='block'; msgEl.textContent='Enter name and email.'; return; }
+  // check browser ban
+  if(localStorage.getItem(KEY_BANNED_BROWSER) === 'true'){ msgEl.style.display='block'; msgEl.textContent='This browser is banned.'; return; }
+  // check user ban
+  const banned = readJSON(KEY_BANNED);
+  if(banned.find(b => b.email === email)){ msgEl.style.display='block'; msgEl.textContent='You are banned and cannot log in.'; return; }
+  // check user exists
+  const users = readJSON(KEY_USERS);
+  if(users.find(u => u.name === name && u.email === email)){
+    // login success: show content
+    hideAllPages();
+    document.getElementById('content').classList.add('visible');
+    // clear login fields
+    document.getElementById('userLoginName').value=''; document.getElementById('userLoginEmail').value='';
+    msgEl.style.display='none';
+  } else {
+    msgEl.style.display='block'; msgEl.textContent='User not found. Please sign up.';
+  }
+}
+
+/* Logout user */
+function logout(){
+  hideAllPages();
+  document.getElementById('mainLogin').classList.add('visible');
+}
+
+/* ===== Admin user management ===== */
+function loadUsers(){
+  const users = readJSON(KEY_USERS);
+  const banned = readJSON(KEY_BANNED);
+  const tbody = document.getElementById('userTableBody');
+  tbody.innerHTML = '';
+  users.forEach(u=>{
+    const tr = document.createElement('tr');
+    const bannedFlag = banned.find(b=>b.email===u.email) ? true : false;
+    tr.innerHTML = `<td>${escapeHtml(u.name)}</td><td>${escapeHtml(u.email)}</td>
+      <td>
+        ${bannedFlag ? `<button class="unban-btn" onclick="unbanUser('${escapeJs(u.email)}')">Unban</button>` :
+                      `<button class="ban-btn" onclick="banUser('${escapeJs(u.email)}')">Ban</button>`}
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+/* Ban a user (by email) — stored in KEY_BANNED */
+function banUser(email){
+  const banned = readJSON(KEY_BANNED);
+  if(!banned.find(b=>b.email===email)){
+    banned.push({email});
+    writeJSON(KEY_BANNED,banned);
+    alert(email + ' has been banned.');
+    loadUsers();
+  }
+}
+
+/* Unban a user */
+function unbanUser(email){
+  let banned = readJSON(KEY_BANNED);
+  banned = banned.filter(b=>b.email !== email);
+  writeJSON(KEY_BANNED,banned);
+  alert(email + ' has been unbanned.');
+  loadUsers();
+}
+
+/* Clear all users (admin) */
+function clearUsers(){
+  if(!confirm('Clear ALL users? This cannot be undone.')) return;
+  localStorage.removeItem(KEY_USERS);
+  loadUsers();
+  alert('All users cleared.');
+}
+
+/* Ban current browser (sets KEY_BANNED_BROWSER = 'true') */
+function banCurrentBrowser(){
+  if(!confirm('Ban THIS browser? This will show a permanent blocked screen on this browser until you unban.')) return;
+  localStorage.setItem(KEY_BANNED_BROWSER, 'true');
+  alert('This browser has been banned. The page will now show a blocked screen on reload.');
+  location.reload();
+}
+
+/* Unban current browser (remove flag) */
+function unbanCurrentBrowser(){
+  localStorage.removeItem(KEY_BANNED_BROWSER);
+  alert('This browser has been unbanned.');
+  location.reload();
+}
+
+/* ===== utility helpers to avoid injection in table (simple) ===== */
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
+function escapeJs(str){ return String(str).replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+
+/* Optional: show banned users list for admin (by reading KEY_BANNED) */
+function showBannedListForAdmin(){
+  const banned = readJSON(KEY_BANNED);
+  if(banned.length === 0){ document.getElementById('banMsg').style.display='block'; document.getElementById('banMsg').textContent='No banned users.'; }
+  else {
+    document.getElementById('banMsg').style.display='block';
+    document.getElementById('banMsg').textContent = 'Banned: ' + banned.map(b=>b.email).join(', ');
+  }
+}
+
+/* Expose some functions to console for convenience */
+window._debug = {readJSON, writeJSON, loadUsers, banUser, unbanUser, banCurrentBrowser, unbanCurrentBrowser};
+
+</script>
+</body>
+</html>
+
